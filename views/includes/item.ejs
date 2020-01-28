@@ -1,0 +1,159 @@
+<% 
+pvmMuotoilu = (pvm) => {
+    if (pvm !== 0) {
+        const d = new Date(pvm)
+        const dd = d.getDate()
+        const mm = d.getMonth() + 1
+        const yy = d.getFullYear()
+        
+        return `${dd}.${mm}.${yy}`
+    } else {
+        return null
+    }
+}
+
+pvmVertailu = (pvm) => {
+    if (pvm !== 0) {
+        const pvmEro = Math.ceil((pvm - new Date().getTime()) / (24 * 60 * 60 * 1000))
+
+        if (pvmEro < 0) {
+            if (pvmEro < -1) return `Haku umpeutui ${-pvmEro} päivää sitten`
+            else return `Haku umpeutui eilen`
+        } else if (pvmEro > 0) {
+            if (pvmEro > 1) return `Haku päätyy ${pvmEro} päivän kuluttua`
+            else return `Haku päätyy huomenna`
+        } else {
+            return `Haku päättyy tänään`
+        }
+    } else {
+        return null
+    }
+}
+
+const muistio = memo.filter(muistiinpano => muistiinpano.tehtavaId === item.id)
+
+%>
+
+<div class="card bg-<%=color%> <% if (color !== 'warning') { %> text-light <% } %> shadow-sm my-2">
+    <div class="card-body p-2">
+        <div class="row">
+            <div class="col-sm-6">
+                <h4 class="card-title"><%=item.otsikko%></h4>
+                <h5><%=item.yritys%></h5>
+            </div>
+            <div class="col-sm-4">
+                <h6>Haettu: <%=pvmMuotoilu(item.haettuPvm)%></h6>
+                <h6>Päättyy: <%=pvmMuotoilu(item.paattyyPvm)%></h6>
+                <h6><small><b><%=pvmVertailu(item.paattyyPvm)%></b></small></h6>
+            </div>
+            <div class="col-2">
+                <div class="dropdown dropleft float-right" id="dropdown<%=item.id%>">
+                    <button type="button" class="btn btn-light btn-sm dropdown-toggle" data-toggle="dropdown"> <small>Tiedot</small></button>
+                    <div class="dropdown-menu">
+                        <button type="button" class="btn-link dropdown-item" data-toggle="modal" data-target="#uusiHaku<%=item.id%>">Uusi muistiinpano</button>
+
+                        <% if (item.status !== 'arkisto') { %>
+
+                        <a href="/edit/<%=item.id%>" class="btn-link dropdown-item">Muokkaa</a>
+
+                        <form action="/archive/<%=item.id%>" method="POST" onSubmit="return vahvistaArkistoon()">
+                            <button type="submit" class="btn-link dropdown-item">Arkistoi</button>
+                        </form>
+
+                        <% } %>
+                        
+                        <form action="/delete/<%=item.id%>" method="POST" onSubmit="return vahvistaPoisto()">
+                            <button type="submit" class="btn-link dropdown-item">Poista</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <button type="button" class="btn <% if (color !== 'warning') { %> btn-outline-light <% } else { %> btn-outline-dark <% } %> btn-sm btn-block" data-toggle="collapse" data-target="#lisatiedot<%=item.id%>">Näytä lisätiedot</button>
+                <div class="collapse mt-2" id="lisatiedot<%=item.id%>">
+                    <div class="card-deck">
+                        <div class="card text-dark ml-3 mr-1">
+                            <div class="card-header text-center p-1">
+                                <h5>Yhteystiedot</h5>
+                            </div>
+                            <div class="card-body p-1">
+                                <h6>Nimi: <%=item.nimi%></h6>
+                                <h6>Puh: <%=item.tel%></h6>
+                                <h6>Email: <a href="mailto:<%=item.email%>"><%=item.email%></a></h6>
+                                <h6>Linkki: <a href="<%=item.linkki%>" target="_blank"><%=item.linkki%></a></h6>
+                            </div>
+                        </div>
+                        <div class="card text-dark ml-1 mr-3">
+                            <div class="card-header text-center p-1">
+                                <h5>Muistiinpanot</h5>
+                            </div>
+                            <div class="card-body p-1">
+                                <% if (muistio.length > 0) {
+                                    muistio.forEach(m => { %>
+
+                                <h6>
+                                    <small><%=pvmMuotoilu(m.pvm)%></small>
+                                    <br>
+                                    <%-m.viesti-%>
+                                </h6>
+        
+                                <%  })
+                                } else { %>
+
+                                <h6>Ei muistiinpanoja.</h6>    
+
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL UUTEEN MUISTIINPANOON -->
+<div class="modal fade" id="uusiHaku<%=item.id%>">
+    <div class="modal-dialog">
+        <div class="modal-content ">
+        
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h4 class="modal-title">Lisää uusi muistiinpano kohteeseen:<br><small class="text-primary"><%=item.otsikko%></small></h4>
+                
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            
+            <!-- Modal body -->
+            <div class="modal-body">
+                <form action="/addmemo/<%=item.id%>" method="POST" onSubmit="vahvistaUusiMuistiinpano()">
+                    <div class="form-group">
+                        <label for="muistiinpano">Muistiinpano:</label>
+                        <textarea type="text" class="form-control" rows="8" id="muistiinpano<%=item.id%>" name="muistiinpano" placeholder="Uusi muistiinpano..."></textarea>
+                        <script>
+                            CKEDITOR.replace("muistiinpano<%=item.id%>");
+                        </script>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Tallenna</button>
+                    <a href="#" class="btn btn-outline-secondary" data-dismiss="modal">Peruuta</a>
+                </form>
+                
+                <% if (virhe.tyyppi === 'loginTiedot') { %>
+                <div class="alert alert-danger alert-dismissible fade show mt-4">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    <%=virhe.viesti%>
+                </div>
+                <% } else if (virhe.tyyppi === 'rekOk') { %>
+                <div class="alert alert-success alert-dismissible fade show mt-4">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    <%=virhe.viesti%>
+                </div>
+                <% } %>
+            </div>
+
+        </div>
+    </div>
+</div>

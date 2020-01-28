@@ -1,0 +1,44 @@
+<%-include('./includes/header')-%>
+
+    <ul class="nav nav-tabs nav-justified">
+        <li class="nav-item">
+            <a class="nav-link active" href="/">Haettu <% if (lista) { %><span class="badge badge-success"> <%=lista.avoimetMaara%></span> <% } %></a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" href="/history">Haku päättynyt  <% if (lista) { %><span class="badge badge-secondary"> <%=lista.paattynytMaara%></span> <% } %></a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" href="/notebook">Muistilista  <% if (lista) { %><span class="badge badge-info"> <%=lista.muistiinMaara%></span> <% } %></a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" href="/archive">Arkisto  <% if (lista) { %><span class="badge badge-warning"> <%=lista.arkistoMaara%></span> <% } %></a>
+        </li>
+    </ul>
+
+    
+    <div class="row border bg-white mx-0">
+        <div class="col-12">
+        <% if (kirjautuminen) { %>
+            <% if (lista) {
+                if (lista.data.length > 0) { 
+                    lista.data.forEach(item => { %> 
+                    
+                    <%-include('./includes/item', {item: item, memo: lista.muistiinpanot, color: 'success'})-%>
+
+                    <% })
+
+                } else { %>
+
+            <h4 class="my-4 p-3">Sinulla ei ole yhtään työpaikkahakemusta, joiden hakuaika on vielä auki ja johon olet hakenut.</h4>
+            
+            <%  }
+            } %>
+        <% } else { %>
+
+            <h4 class="my-4 p-3">Aloita kirjautumalla palveluun.</h4>
+
+        <% } %>
+        </div>
+    </div>
+    
+<%-include('./includes/footer')-%>

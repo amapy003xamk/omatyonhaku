@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Oma työnhaku</title>
+
+    <!--JQUERY-->
+    <script src="/js/jquery-3.4.1.min.js"></script>
+
+    <!--POPPER-->
+    <script src="/js/popper.min.js"></script>
+
+    <!--BOOTSTRAP-4.4.1-->
+    <script src="/bootstrap-4.4.1-dist/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="/bootstrap-4.4.1-dist/css/bootstrap.min.css">
+
+    <!--OMAT-->
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="/js/koodit.js"></script>
+
+    <!--CKEDITOR BASIC-->
+    <script src="https://cdn.ckeditor.com/4.13.1/standard/ckeditor.js"></script>
+</head>
+<body class="mp-bg">
+    <div class="d-flex justify-content-between bg-dark text-light mb-4 p-2">
+        <div class="p-2">
+            <a href="/" class="text-light"><h4>'\O/'</h4></a>
+        </div>
+        <div class="p-2">
+            <% if (kirjautuminen) { %>
+            
+            <a href="/logout" class="btn btn-outline-light"><%=kirjautumistiedot.tunnus%> - Kirjaudu ulos</a>
+
+            <% } else { %>
+
+            <button type="button" class="btn btn-outline-light" data-toggle="modal" data-target="#login">Kirjaudu</button>
+            
+            <% } %>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function(){
+
+        <% if (virhe) {
+            if (virhe.tyyppi === 'login' || 'loginTiedot' && virhe.tyyppi !== 'rekTiedot' && virhe.tyyppi !== 'tyoTiedot' && virhe.tyyppi !== 'muokkaus') { %>
+
+            $("#login").modal()
+
+        <%  } else if (virhe.tyyppi === 'rekTiedot') { %>
+
+            $("#registeration").modal()
+
+        <%  } else if (virhe.tyyppi === 'tyoTiedot') { %>
+        
+            $("#uusiHaku").modal()
+
+        <%  }
+        } %>
+
+        })
+    </script>
+
+    <!-- MODAL KIRJAUTUMISEEN -->
+    <div class="modal fade" id="login">
+        <div class="modal-dialog">
+            <div class="modal-content ">
+            
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h4 class="modal-title">Kirjaudu palveluun</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <form action="/login" method="POST">
+                        <div class="form-group">
+                            <label for="tunnus">Käyttäjätunnus:</label>
+                            <input type="text" class="form-control" id="tunnus" name="tunnus" value="<%=kirjautumistiedot.tunnus%>">
+                        </div>
+                        <div class="form-group">
+                            <label for="salasana">Salasana:</label>
+                            <input type="password" class="form-control" id="salasana" name="salasana">
+                        </div>
+                        <div class="form-group form-check">
+                            <label class="form-check-label">
+                                <input class="form-check-input" type="checkbox" id="muista" name="muista" <% if (kirjautumistiedot.muista === 'on') { %> checked <% } %>> Muista minut
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Kirjaudu</button>
+                        <a href="/" class="btn btn-outline-secondary">Peruuta</a>
+                    </form>
+                    
+                    <% if (virhe.tyyppi === 'loginTiedot') { %>
+                    <div class="alert alert-danger alert-dismissible fade show mt-4">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        <%=virhe.viesti%>
+                    </div>
+                    <% } else if (virhe.tyyppi === 'rekOk') { %>
+                    <div class="alert alert-success alert-dismissible fade show mt-4">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        <%=virhe.viesti%>
+                    </div>
+                    <% } %>
+                </div>
+                
+                <!-- Modal footer -->
+                <div class="modal-footer">
+                    Ei vielä tunnusta?<button type="button" class="btn btn-link" data-dismiss="modal" data-toggle="modal" data-target="#registeration">Rekisteröidy tästä</button>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL REKISTERÖITYMISEEN -->
+    <div class="modal fade" id="registeration">
+        <div class="modal-dialog">
+            <div class="modal-content ">
+            
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h4 class="modal-title">Rekisteröidy käyttäjäksi</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                
+                <!-- Modal body -->
+                <div class="modal-body">
+                    <form action="/register" method="POST">
+                        <div class="form-group">
+                            <label for="tunnus">Käyttäjätunnus:</label>
+                            <input type="text" class="form-control" id="tunnus" name="tunnus" value="<%=kirjautumistiedot.tunnus%>">
+                        </div>                            
+                        <div class="form-group">
+                            <label for="salasana">Salasana:</label>
+                            <input type="password" class="form-control" id="salasana" name="salasana">
+                        </div>
+                        <div class="form-group">
+                            <label for="salasanaVarmistus">Salasana uudestaan:</label>
+                            <input type="password" class="form-control" id="salasanaVarmistus" name="salasanaVarmistus">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Rekisteröidy</button>
+                        <a href="/" class="btn btn-outline-secondary">Peruuta</a>
+                    </form>
+                    
+                    <% if (virhe.tyyppi === 'rekTiedot') { %>
+                    <div class="alert alert-danger alert-dismissible fade show mt-4">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        <%=virhe.viesti%>
+                    </div>
+                    <% } %>
+                </div>
+                
+                <!-- Modal footer -->
+                <div class="modal-footer">
+                    <div class="alert alert-info">
+                        Käyttäjätunnuksen on oltava vähintään 5 merkkiä pitkä ja salasanan vähintään 8 merkkiä pitkä.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <% if (virhe.tyyppi !== 'muokkaus') { %>
+
+    <!--MODAL UUSI TYÖNHAKU-->
+    <div class="modal fade" id="uusiHaku">
+        <div class="modal-dialog">
+            <div class="modal-content ">
+            
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <h4 class="modal-title">Lisää uusi</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                
+                <!-- Modal body -->
+                <form action="/lisaaHaku" method="POST">
+                    <div class="modal-body">
+
+                        <div id="hakuKaruselli" class="carousel slide" data-ride="carousel" data-interval="false" data-wrap="false">
+                            <div class="carousel-inner px-4" style="min-height: 300px;">
+                                
+                                <div class="carousel-item active">
+                                    <h5>1/2: Perustiedot <small>(* pakollinen)</small></h5>
+
+                                    <div class="form-group">
+                                        <label for="otsikko">Otsikko: *</label>
+                                        <input type="text" class="form-control" id="otsikko" name="otsikko" value="<%=tyotiedot.otsikko%>">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="yritys">Yritys: *</label>
+                                        <input type="text" class="form-control" id="yritys" name="yritys" value="<%=tyotiedot.yritys%>">
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <script>
+                                            </script>
+                                            <div class="form-group" data-toggle="tooltip" title="Voit jättää kentän tyhjäksi, niin työpaikka siirtyy muistilistalle!">
+                                                <label for="haettuPvm">Haettu pvm:</label>
+                                                <input type="date" class="form-control" id="haettuPvm" name="haettuPvm" value="<%=tyotiedot.haettuPvm%>">
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label for="paattyyPvm">Haku päättyy:</label>
+                                                <input type="date" class="form-control" id="paattyyPvm" name="paattyyPvm" value="<%=tyotiedot.paattyyPvm%>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="carousel-item">
+                                    <h5>2/2: Yhteystiedot</h5>
+
+                                    <div class="form-group">
+                                        <label for="nimi">Nimi:</label>
+                                        <input type="text" class="form-control" id="nimi" name="nimi" value="<%=tyotiedot.nimi%>">
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label for="email">Email:</label>
+                                                <input type="email" class="form-control" id="email" name="email" value="<%=tyotiedot.email%>">
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label for="tel">Puhelin:</label>
+                                                <input type="tel" class="form-control" id="tel" name="tel" value="<%=tyotiedot.tel%>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" data-toggle="tooltip" title="Kopioi nettisivun linkki kokonaisuudessaan muodossa 'http://... tai https://..'">
+                                        <label for="linkki">Linkki:</label>
+                                        <input type="text" class="form-control" id="linkki" name="linkki" value="<%=tyotiedot.linkki%>">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <% if (virhe.tyyppi === 'tyoTiedot') { %>
+                            <div class="alert alert-danger alert-dismissible fade show">
+                                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                                <%=virhe.viesti%>
+                            </div>
+                            <% } %>
+
+                        </div>  
+                    </div>
+                    
+                    <!-- Modal footer -->
+                    <div class="bg-light p-3">
+                        <div class="d-flex justify-content-between px-4">
+                            <div>
+                                <a class="btn btn-outline-info" href="#hakuKaruselli" data-slide="prev"><</a>
+                            </div>
+
+                            <div>
+                                <button type="submit" class="btn btn-primary mx-1">Tallenna</button>
+                                <a href="/" class="btn btn-outline-secondary mx-1">Peruuta</a>
+                            </div>
+
+                            <div>
+                                <a class="btn btn-outline-info" href="#hakuKaruselli" data-slide="next">></a>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+                
+            </div>
+        </div>
+    </div>
+
+    <% } %>
+
+    <div class="container">
+        <h2 class="text-dark py-4 my-4">Oma työnhaku</h2>
+
+        <% if (kirjautuminen && virhe.tyyppi !== 'muokkaus') { %>
+        
+        <div class="row mb-4 my-1">
+            <div class="col-12">
+                <button type="button" class="btn btn-outline-primary btn-block" data-toggle="modal" data-target="#uusiHaku">Lisää uusi työnhaku...</button>
+            </div>
+        </div>    
+
+        <% } %>
